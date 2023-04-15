@@ -13,5 +13,7 @@ lint:
     pipenv run isort .
     pipenv run black .
 
-test-integration:
-    pipenv run pytest -v --with-integration
+test:
+    pipenv run pytest -v
+
+
