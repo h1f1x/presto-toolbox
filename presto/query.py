@@ -1,5 +1,5 @@
 import os
-from configparser import ConfigParser
+from configparser import ConfigParser, SectionProxy
 from contextlib import contextmanager
 from typing import Any, Dict
 
@@ -9,7 +9,7 @@ from codetiming import Timer
 from prestodb.client import PrestoResult
 from prestodb.dbapi import Connection
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
 
 
 def read_config() -> ConfigParser:
@@ -21,7 +21,7 @@ def read_config() -> ConfigParser:
 
 
 @contextmanager
-def db_connect(db: Dict[str, Any]) -> Connection:
+def db_connect(db: SectionProxy) -> Connection:
     with prestodb.dbapi.connect(
         host=db["host"],
         port=db["port"],
@@ -35,7 +35,7 @@ def db_connect(db: Dict[str, Any]) -> Connection:
         yield conn
 
 
-def query(db_config: ConfigParser, query_string: str) -> PrestoResult:
+def query(db_config: SectionProxy, query_string: str) -> PrestoResult:
     with db_connect(db_config) as conn:
         cur = conn.cursor()
         for row in cur.execute(query_string):
@@ -46,14 +46,14 @@ def query_string(config: ConfigParser, query_name: str) -> str:
     return config[f"Query.{query_name}"]["query"]
 
 
-def show_query_result(config: ConfigParser, query_name: str) -> None:
-    return config.has_option(f"Query.{query_name}", "show_result")
+def show_query_result(config: ConfigParser, query_name: str) -> bool:
+    return not config.has_option(f"Query.{query_name}", "hide-result")
 
 
 if __name__ == "__main__":
     config = read_config()
     with Timer(name="context manager"):
-        query_name = "foo"
+        query_name = "presto-nodes"
         print(f"Querying {query_name}...")
         print(query_string(config, query_name))
         result = query(config["DB"], query_string(config, query_name))

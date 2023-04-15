@@ -5,9 +5,12 @@ catalog=awsdatacatalog
 schema=default
 http_scheme=https
 
+[Query.test]
+query=SELECT 1
+hide-result=true
+
 [Query.presto-nodes]
 query=SELECT * FROM system.runtime.nodes
 
 [Query.presto-queries]
 query=select * from system.runtime.queries
-
