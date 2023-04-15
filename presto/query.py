@@ -20,6 +20,25 @@ def read_config() -> ConfigParser:
     return config
 
 
+def analyse(config: ConfigParser, query_name: str):
+    result = query_one(config["DB"], "select count(*) from system.runtime.queries where state = 'RUNNING'")
+    print(f"[] Currently running queries: {result[0]}")
+    with Timer(name="context manager"):
+        query_name = "presto-nodes"
+        print(f"Querying {query_name}...")
+        print(query_string(config, query_name))
+        result = query(config["DB"], query_string(config, query_name))
+        c = 0
+        for row in result:
+            c += 1
+            if show_query_result(config, query_name):
+                print(row)
+            else:
+                if c % 100000 == 0:
+                    print(f"Fetched until now {c} rows.")
+        print(f"Total fetched {c} rows.")
+
+
 @contextmanager
 def db_connect(db: SectionProxy) -> Connection:
     with prestodb.dbapi.connect(
@@ -42,6 +61,13 @@ def query(db_config: SectionProxy, query_string: str) -> PrestoResult:
             yield row
 
 
+def query_one(db_config: SectionProxy, query_string: str) -> PrestoResult:
+    with db_connect(db_config) as conn:
+        cur = conn.cursor()
+        cur.execute(query_string)
+        return cur.fetchone()
+
+
 def query_string(config: ConfigParser, query_name: str) -> str:
     return config[f"Query.{query_name}"]["query"]
 
@@ -52,17 +78,4 @@ def show_query_result(config: ConfigParser, query_name: str) -> bool:
 
 if __name__ == "__main__":
     config = read_config()
-    with Timer(name="context manager"):
-        query_name = "presto-nodes"
-        print(f"Querying {query_name}...")
-        print(query_string(config, query_name))
-        result = query(config["DB"], query_string(config, query_name))
-        c = 0
-        for row in result:
-            c += 1
-            if show_query_result(config, query_name):
-                print(row)
-            else:
-                if c % 100000 == 0:
-                    print(f"Fetched until now {c} rows.")
-        print(f"Total fetched {c} rows.")
+    analyse(config, "presto-nodes")
