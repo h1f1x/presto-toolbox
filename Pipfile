@@ -11,6 +11,8 @@ codetiming = "*"
 [dev-packages]
 isort = "*"
 black = "*"
+pytest = "*"
+pytest-integration = "*"
 
 [requires]
 python_version = "3.9"
