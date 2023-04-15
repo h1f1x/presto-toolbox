@@ -1,0 +1,13 @@
+[DB]
+host=presto
+port=443
+catalog=awsdatacatalog
+schema=default
+http_scheme=https
+
+[Query.presto-nodes]
+query=SELECT * FROM system.runtime.nodes
+
+[Query.presto-queries]
+query=select * from system.runtime.queries
+
