@@ -1,0 +1,28 @@
+{
+    "files.insertFinalNewline": true,
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.sortImports": true
+        },
+    },
+    "python.formatting.provider": "black",
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    "python.formatting.blackArgs": [
+        "--line-length",
+        "120"
+    ],
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "mergeEditor.diffAlgorithm": "experimental",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportPrivateImportUsage": "warning"
+    }
+}
