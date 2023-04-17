@@ -4,6 +4,8 @@ import os
 import sys
 import click
 from codetiming import Timer
+import humanize
+import datetime as dt
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from presto.run_query import read_config, query_one, query_string, show_query_result, execute
@@ -36,8 +38,10 @@ def query(ctx, name):
         click.echo("[] verbose is on.")
     result = query_one(config["DB"], "select count(*) from system.runtime.queries where state = 'RUNNING'")
     print(f"[] Currently running queries: {result[0]}")
-    with Timer(name="context manager"):
-        print(f"Querying {name}...")
+    with Timer(
+        name="context manager", text=lambda secs: f"Elapsed time: {humanize.naturaldelta(dt.timedelta(seconds=secs))}"
+    ):
+        print(f"[] Querying {name}...")
         print(query_string(config, name))
         result = execute(config["DB"], query_string(config, name))
         c = 0
@@ -47,8 +51,8 @@ def query(ctx, name):
                 print(row)
             elif verbose:
                 if c % 100000 == 0:
-                    print(f"Fetched until now {c} rows.")
-        print(f"Total fetched {c} rows.")
+                    print(f"Fetched until now {humanize.intword(c)} rows.")
+        print(f"Total fetched {humanize.intword(c)} rows.")
 
 
 if __name__ == "__main__":
