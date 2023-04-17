@@ -7,6 +7,8 @@ name = "pypi"
 presto-python-client = "*"
 certifi = "*"
 codetiming = "*"
+humanize = "*"
+click = "*"
 
 [dev-packages]
 isort = "*"

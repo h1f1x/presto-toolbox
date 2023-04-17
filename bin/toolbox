@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import click
+from codetiming import Timer
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from presto.run_query import read_config, query_one, query_string, show_query_result, execute
+
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+@click.group()
+@click.option("--verbose", "-v", is_flag=True, help="Print more output.")
+@click.pass_context
+def cli(ctx, verbose):
+    # ensure that ctx.obj exists and is a dict (in case `cli()` is called
+    # by means other than the `if` block below)
+    ctx.ensure_object(dict)
+    ctx.obj["verbose"] = verbose
+    ctx.obj["config"] = read_config(os.path.join(__location__, "../config.ini"))
+
+
+@cli.command()
+@click.option(
+    "--name",
+    prompt="Query name from config",
+    help="The query the execute/analyze.",
+)
+@click.pass_context
+def query(ctx, name):
+    verbose = ctx.obj["verbose"]
+    config = ctx.obj["config"]
+    if verbose:
+        click.echo("[] verbose is on.")
+    result = query_one(config["DB"], "select count(*) from system.runtime.queries where state = 'RUNNING'")
+    print(f"[] Currently running queries: {result[0]}")
+    with Timer(name="context manager"):
+        print(f"Querying {name}...")
+        print(query_string(config, name))
+        result = execute(config["DB"], query_string(config, name))
+        c = 0
+        for row in result:
+            c += 1
+            if show_query_result(config, name):
+                print(row)
+            elif verbose:
+                if c % 100000 == 0:
+                    print(f"Fetched until now {c} rows.")
+        print(f"Total fetched {c} rows.")
+
+
+if __name__ == "__main__":
+    cli(obj={})  # pylint: disable=no-value-for-parameter

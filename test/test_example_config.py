@@ -4,7 +4,7 @@ import sys
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from presto import query
+from presto import run_query
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -25,4 +25,4 @@ def test_example_config_db_and_query_should_work():
         assert db_field in real_config["DB"], "DB field is missing in real config"
         example_config["DB"][db_field] = real_config["DB"][db_field]
 
-    query.query(example_config["DB"], "SELECT 1")
+    run_query.query(example_config["DB"], "SELECT 1")

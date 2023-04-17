@@ -5,38 +5,20 @@ from typing import Any, Dict
 
 import prestodb
 import urllib3
-from codetiming import Timer
+
 from prestodb.client import PrestoResult
 from prestodb.dbapi import Connection
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
 
 
-def read_config() -> ConfigParser:
+def read_config(config_file: str) -> ConfigParser:
     config = ConfigParser()
-    config.read("config.ini")
+    config.read(config_file)
+    print(f"[] Read config from {config_file}")
     if not "user" in config["DB"]:
         config["DB"]["user"] = os.getenv("USER", "presto-toolbox")
     return config
-
-
-def analyse(config: ConfigParser, query_name: str):
-    result = query_one(config["DB"], "select count(*) from system.runtime.queries where state = 'RUNNING'")
-    print(f"[] Currently running queries: {result[0]}")
-    with Timer(name="context manager"):
-        query_name = "presto-nodes"
-        print(f"Querying {query_name}...")
-        print(query_string(config, query_name))
-        result = query(config["DB"], query_string(config, query_name))
-        c = 0
-        for row in result:
-            c += 1
-            if show_query_result(config, query_name):
-                print(row)
-            else:
-                if c % 100000 == 0:
-                    print(f"Fetched until now {c} rows.")
-        print(f"Total fetched {c} rows.")
 
 
 @contextmanager
@@ -54,7 +36,7 @@ def db_connect(db: SectionProxy) -> Connection:
         yield conn
 
 
-def query(db_config: SectionProxy, query_string: str) -> PrestoResult:
+def execute(db_config: SectionProxy, query_string: str) -> PrestoResult:
     with db_connect(db_config) as conn:
         cur = conn.cursor()
         for row in cur.execute(query_string):
@@ -77,5 +59,4 @@ def show_query_result(config: ConfigParser, query_name: str) -> bool:
 
 
 if __name__ == "__main__":
-    config = read_config()
-    analyse(config, "presto-nodes")
+    pass

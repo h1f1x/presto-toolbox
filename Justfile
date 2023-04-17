@@ -1,12 +1,13 @@
-list:
+@list:
     just --list
+    echo "Run pipenv run bin/toolbox for command line client."
 
 # setup python environment
 init:
     pipenv install --dev
 
 run:
-    pipenv run python -m presto.query
+    @echo "please exwecute: pipenv run bin/toolbox"
 
 # autolint with isort and black
 lint:
